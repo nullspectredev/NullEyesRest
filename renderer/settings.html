@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NullEyesRest — Settings</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { -webkit-app-region: drag; }
+    input, button { -webkit-app-region: no-drag; }
+
+    .page {
+      position: relative; z-index: 1;
+      padding: 96px 28px 28px;
+      display: flex; flex-direction: column; gap: 18px;
+      height: 100vh;
+    }
+    .group { padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .next-card { padding: 20px; text-align: center; }
+    .next-card .label {
+      font-size: 12px; color: var(--text-dim);
+      letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .next-card .timer {
+      font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums;
+      background: var(--grad);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 0 16px rgba(79, 124, 255, 0.35));
+    }
+    .group label { font-size: 13px; color: var(--text-dim); letter-spacing: 0.6px; text-transform: uppercase; }
+    .note { font-size: 12px; color: var(--text-dim); }
+    .actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+    .saved {
+      text-align: center; font-size: 13px; min-height: 18px;
+      background: var(--grad);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      font-weight: 600;
+    }
+    .close-x {
+      position: fixed; top: 20px; right: 20px; z-index: 20;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-dim); font-size: 15px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-app-region: no-drag;
+    }
+    .close-x:hover { color: var(--text); background: rgba(255, 255, 255, 0.14); }
+
+    /* iOS-like segmented control */
+    .segment {
+      display: flex; gap: 4px; padding: 4px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 12px;
+    }
+    .segment button {
+      flex: 1; padding: 10px 0;
+      border: none; border-radius: 9px; cursor: pointer;
+      background: transparent; color: var(--text-dim);
+      font-size: 14px; font-weight: 600;
+      transition: background 0.15s, color 0.15s;
+    }
+    .segment button.active {
+      background: var(--grad); color: #fff;
+      box-shadow: 0 4px 16px rgba(79, 124, 255, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <div class="brand">
+    <img src="../assets/logo.png" alt="NullEyes logo" />
+    <div>
+      <div class="name">NullEyesRest</div>
+      <div class="by" id="brandSub">Settings</div>
+    </div>
+  </div>
+
+  <button class="close-x" id="closeBtn" title="Close">✕</button>
+
+  <div class="page">
+    <div class="next-card card">
+      <div class="label" id="nextLabel">Next eye break in</div>
+      <div class="timer" id="nextTimer">--:--</div>
+    </div>
+
+    <div class="group card">
+      <label for="interval" id="intervalLabel">Break every (minutes)</label>
+      <input class="ios-input" id="interval" type="number" min="1" max="480" />
+    </div>
+
+    <div class="group card">
+      <label for="rest" id="restLabel">Rest duration (seconds)</label>
+      <input class="ios-input" id="rest" type="number" min="5" max="300" />
+    </div>
+
+    <div class="group card">
+      <label for="phrase" id="phraseLabel">Unlock phrase</label>
+      <input class="ios-input" id="phrase" type="text" spellcheck="false" />
+      <p class="note" id="phraseNote">You will have to type this exactly to close the break screen.</p>
+    </div>
+
+    <div class="group card">
+      <label id="langLabel">Language</label>
+      <div class="segment" id="langSegment">
+        <button data-lang="en">English</button>
+        <button data-lang="ru">Русский</button>
+      </div>
+    </div>
+
+    <div class="saved" id="saved"></div>
+
+    <div class="actions">
+      <button class="ios-btn" id="saveBtn">Save</button>
+      <button class="ios-btn secondary" id="breakBtn">Take a break now</button>
+    </div>
+  </div>
+
+  <script src="../i18n.js"></script>
+  <script>
+    (async () => {
+      const cfg = await window.neye.getConfig();
+      const $ = (id) => document.getElementById(id);
+      let lang = cfg.language || 'en';
+      const T = (key, vars) => window.i18n.t(lang, key, vars);
+
+      function applyTexts() {
+        $('brandSub').textContent = T('settingsSub');
+        $('nextLabel').textContent = T('nextBreakIn');
+        $('intervalLabel').textContent = T('intervalLabel');
+        $('restLabel').textContent = T('restLabel');
+        $('phraseLabel').textContent = T('phraseLabel');
+        $('phraseNote').textContent = T('phraseNote');
+        $('langLabel').textContent = T('languageLabel');
+        $('saveBtn').textContent = T('save');
+        $('breakBtn').textContent = T('takeBreak');
+        document.querySelectorAll('#langSegment button').forEach((b) => {
+          b.classList.toggle('active', b.dataset.lang === lang);
+        });
+      }
+
+      $('interval').value = cfg.intervalMinutes;
+      $('rest').value = cfg.restSeconds;
+      $('phrase').value = cfg.phrase;
+      applyTexts();
+
+      document.querySelectorAll('#langSegment button').forEach((b) => {
+        b.addEventListener('click', () => { lang = b.dataset.lang; applyTexts(); });
+      });
+
+      $('saveBtn').addEventListener('click', async () => {
+        const next = await window.neye.saveConfig({
+          intervalMinutes: $('interval').value,
+          restSeconds: $('rest').value,
+          phrase: $('phrase').value,
+          language: lang
+        });
+        $('phrase').value = next.phrase;
+        $('saved').textContent = T('saved');
+        setTimeout(() => { $('saved').textContent = ''; }, 2500);
+      });
+
+      async function tickNext() {
+        const s = await window.neye.getStatus();
+        const el = $('nextTimer');
+        if (s.breakActive) { el.textContent = T('breakNow'); return; }
+        if (!s.nextBreakAt) { el.textContent = '--:--'; return; }
+        const left = Math.max(0, Math.round((s.nextBreakAt - Date.now()) / 1000));
+        const h = Math.floor(left / 3600);
+        const m = Math.floor((left % 3600) / 60);
+        const sec = left % 60;
+        el.textContent = (h ? String(h) + ':' + String(m).padStart(2, '0') : String(m))
+          + ':' + String(sec).padStart(2, '0');
+      }
+      tickNext();
+      setInterval(tickNext, 1000);
+
+      $('breakBtn').addEventListener('click', () => window.neye.breakNow());
+      $('closeBtn').addEventListener('click', () => window.neye.closeSettings());
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "nulleyesrest",
+  "productName": "NullEyesRest",
+  "version": "1.0.0",
+  "description": "Fullscreen eye-rest reminder (20-20-20 rule) with a phrase-lock overlay.",
+  "main": "main.js",
+  "author": "NullEyes",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "start:quiet": "electron . 2>/dev/null",
+    "start:bg": "setsid -f node_modules/.bin/electron . >/dev/null 2>&1",
+    "autostart": "node scripts/autostart.js",
+    "autostart:remove": "node scripts/autostart.js --remove"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}

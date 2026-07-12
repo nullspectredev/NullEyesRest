@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NullEyesRest — Break</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .wrap {
+      position: relative; z-index: 1;
+      height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 28px; text-align: center; padding: 24px;
+    }
+    h1 {
+      font-size: 46px; font-weight: 800; letter-spacing: -0.5px;
+      background: var(--grad);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 0 22px rgba(79, 124, 255, 0.35));
+    }
+    .subtitle { font-size: 19px; color: var(--text-dim); max-width: 560px; line-height: 1.55; }
+
+    /* Countdown ring */
+    .ring-box { position: relative; width: 220px; height: 220px; }
+    .ring-box svg { transform: rotate(-90deg); }
+    .ring-track { fill: none; stroke: rgba(255, 255, 255, 0.08); stroke-width: 10; }
+    .ring-bar {
+      fill: none; stroke: url(#g); stroke-width: 10; stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
+      filter: drop-shadow(0 0 10px rgba(42, 216, 255, 0.6));
+    }
+    .ring-num {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 64px; font-weight: 800; font-variant-numeric: tabular-nums;
+    }
+
+    .unlock {
+      display: none; width: min(520px, 90vw);
+      padding: 26px; animation: fadeUp 0.5s ease both;
+    }
+    .unlock.visible { display: block; }
+    .unlock .hint { font-size: 15px; color: var(--text-dim); margin-bottom: 14px; line-height: 1.5; }
+    .unlock .hint b { color: var(--text); font-weight: 600; }
+    .unlock .row { display: flex; gap: 10px; }
+    .unlock .row .ios-btn { white-space: nowrap; }
+    .err { color: var(--danger); font-size: 13px; margin-top: 10px; min-height: 16px; }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <div class="brand">
+    <img src="../assets/logo.png" alt="NullEyes logo" />
+    <div>
+      <div class="name">NullEyesRest</div>
+      <div class="by">by NullEyes</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <h1 id="title">Time to rest your eyes</h1>
+    <p class="subtitle" id="subtitle"></p>
+
+    <div class="ring-box" id="ringBox">
+      <svg width="220" height="220">
+        <defs>
+          <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#2ad8ff" />
+            <stop offset="50%" stop-color="#4f7cff" />
+            <stop offset="100%" stop-color="#a855f7" />
+          </linearGradient>
+        </defs>
+        <circle class="ring-track" cx="110" cy="110" r="100" />
+        <circle class="ring-bar" id="ringBar" cx="110" cy="110" r="100" />
+      </svg>
+      <div class="ring-num" id="ringNum">20</div>
+    </div>
+
+    <div class="unlock card" id="unlock">
+      <p class="hint"><span id="hintLabel">If you have rested, type:</span> <b id="phraseHint"></b></p>
+      <div class="row">
+        <input class="ios-input" id="phraseInput" type="text"
+               placeholder="Type the phrase here…" autocomplete="off" spellcheck="false" />
+        <button class="ios-btn" id="unlockBtn">Unlock</button>
+      </div>
+      <div class="err" id="err"></div>
+    </div>
+  </div>
+
+  <script src="../i18n.js"></script>
+  <script>
+    (async () => {
+      const cfg = await window.neye.getConfig();
+      const T = (key, vars) => window.i18n.t(cfg.language, key, vars);
+      const total = cfg.restSeconds;
+      let left = total;
+
+      const C = 2 * Math.PI * 100;
+      const bar = document.getElementById('ringBar');
+      bar.style.strokeDasharray = C;
+      bar.style.strokeDashoffset = 0;
+
+      document.getElementById('title').textContent = T('overlayTitle');
+      document.getElementById('subtitle').textContent = T('overlaySubtitle', { sec: total });
+      document.getElementById('hintLabel').textContent = T('overlayHint');
+      document.getElementById('unlockBtn').textContent = T('overlayUnlock');
+      document.getElementById('phraseInput').placeholder = T('overlayPlaceholder');
+      document.getElementById('ringNum').textContent = left;
+      document.getElementById('phraseHint').textContent = `"${cfg.phrase}"`;
+
+      const tick = setInterval(() => {
+        left -= 1;
+        document.getElementById('ringNum').textContent = Math.max(0, left);
+        bar.style.strokeDashoffset = C * (1 - left / total);
+        if (left <= 0) {
+          clearInterval(tick);
+          document.getElementById('ringBox').style.opacity = '0.25';
+          const unlock = document.getElementById('unlock');
+          unlock.classList.add('visible');
+          document.getElementById('phraseInput').focus();
+        }
+      }, 1000);
+
+      const input = document.getElementById('phraseInput');
+      const err = document.getElementById('err');
+
+      async function attempt() {
+        const ok = await window.neye.tryUnlock(input.value);
+        if (!ok) {
+          err.textContent = T('overlayError');
+          input.classList.add('error');
+          setTimeout(() => input.classList.remove('error'), 450);
+          input.select();
+        }
+      }
+
+      document.getElementById('unlockBtn').addEventListener('click', attempt);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') attempt(); });
+
+      // No sneaky exits
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' || e.key === 'F11' ||
+            ((e.ctrlKey || e.metaKey) && ['w', 'q', 'r'].includes(e.key.toLowerCase()))) {
+          e.preventDefault();
+        }
+      });
+      window.addEventListener('contextmenu', (e) => e.preventDefault());
+    })();
+  </script>
+</body>
+</html>
