@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Fullscreen eye-rest reminder (20-20-20 rule) with a phrase-lock overlay.",
   "main": "main.js",
-  "author": "NullEyes",
+  "author": "Null",
   "license": "MIT",
   "scripts": {
     "start": "electron .",

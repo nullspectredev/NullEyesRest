@@ -1,9 +1,9 @@
 <div align="center">
-  <img src="assets/logo.png" width="110" alt="NullEyes logo" />
+  <img src="assets/logo.png" width="110" alt="Null logo" />
 
   # NullEyesRest
 
-  **Fullscreen eye-rest reminder (20-20-20 rule) by NullEyes**
+  **Fullscreen eye-rest reminder (20-20-20 rule) by Null**
 
   *Every 20 minutes it takes over your screen and makes you look into the distance for 20 seconds.
   The only way to close it is to type the unlock phrase.*
@@ -21,7 +21,7 @@
 - 🌐 **English / Russian UI** — switchable in settings
 - 💾 **Persistent settings** — interval, rest duration, phrase and language survive restarts
 - 🚀 **Autostart** — one command installs autostart (niri `spawn-at-startup`, XDG autostart, Windows registry)
-- 🎨 **iOS-style dark UI** in the NullEyes neon palette (cyan → blue → purple on deep navy)
+- 🎨 **iOS-style dark UI** in the Null neon palette (cyan → blue → purple on deep navy)
 - 🐧🪟 **Cross-platform** — Linux (Wayland/niri and X11) and Windows, plain Electron + HTML/CSS/JS
 
 ## 📦 Requirements
@@ -102,7 +102,7 @@ renderer/
   toast.html          # corner notifications
   style.css           # shared iOS-style neon theme
 scripts/autostart.js  # cross-platform autostart installer
-assets/logo.png       # NullEyes logo
+assets/logo.png       # Null logo
 ```
 
 ---
@@ -137,5 +137,5 @@ npm start
 ---
 
 <div align="center">
-  Made with 💙 by <b>NullEyes</b>
+  Made with 💙 by <b>Null</b>
 </div>
